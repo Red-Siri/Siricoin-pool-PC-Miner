@@ -29,7 +29,10 @@ class pool:
 
     def submit(id, jobID, proof, timestamp, nonce):
         response = requests.post(poolURL, json={"id": id, "method": "mining.submit", "params": [siriAddress, jobID, proof, timestamp, nonce]}).json()
-        return {"Accepted": response["result"], "TXID": response["raw"]}
+        if response["result"]:
+            return {"Accepted": True, "TXID": response["raw"]}
+        else:
+            return {"Accepted": False, "TXID": False}
 
 class console_log:
 
