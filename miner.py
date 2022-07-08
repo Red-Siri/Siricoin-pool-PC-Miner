@@ -1,8 +1,8 @@
-import time, sha3, requests, json
-from termcolor import colored
+import time, sha3, requests, json, random
+from rich import print
 
 
-siriAddress = "0x4baE9F81a30b148Eb40044F6268B5496861Cb313"
+siriAddress = "0xc79878fCD826EC7e00c9cB754f8242F3466dead5"
 poolURL = "http://168.138.151.204/poolsiri/"
 
 hashes_per_list = 1024
@@ -24,7 +24,7 @@ class pool:
         return requests.post(poolURL, json={'id': None, 'method': 'mining.authorize', 'params': [siriAddress]}).json()["id"]
 
     def requestJob(id):
-        response = requests.post(poolURL, json={'id': id, 'method': 'mining.subscribe', 'params': ['ESP8266']}).json()["params"]
+        response = requests.post(poolURL, json={'id': id, 'method': 'mining.subscribe', 'params': ['PC']}).json()["params"]
         return {"JOB_ID": response[0], "lastBlockHash": response[1], "target": response[2], "startNonce": response[3], "EndNonce": response[4], "timestamp": response[7], "PoolAddr": response[9]}
 
     def submit(id, jobID, proof, timestamp, nonce):
@@ -34,7 +34,7 @@ class pool:
 class console_log:
 
     def rgbPrint(string, color):
-        print(colored(str(string), color))
+        print("[" + color + "]" + str(string) + "[/" + color + "]")
     
     def logged_in(id):
         console_log.rgbPrint("Logged in as: " + siriAddress + "@" + poolURL + ", ID: " + str(id), "cyan")
@@ -105,11 +105,13 @@ while True:
 
     if not FinalHash[0]:
         hashrates.append(FinalHash[1]["Hashrate"])
+        time.sleep(random.randint(1, 3))
         console_log.share("Share", pool.submit(id, job["JOB_ID"], "0x00", job["timestamp"], 1))
 
     if FinalHash[0]:
         hashrates.append(FinalHash[1]["Hashrate"])
         console_log.rgbPrint("Block found, submiting to pool", "magenta")
+        time.sleep(random.randint(1, 3))
         console_log.share("Block", pool.submit(id, job["JOB_ID"], FinalHash[1]["Proof"], job["timestamp"], FinalHash[1]["Nonce"]))
 
     if time.time() - startTime > hashrateRefreshRate:   
@@ -117,4 +119,4 @@ while True:
         hashrates = []
         startTime = time.time()  
 
-    time.sleep(2.5)
+    time.sleep(random.randint(2, 5))
