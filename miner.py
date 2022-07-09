@@ -82,13 +82,13 @@ class pool:
         if response["result"]:
             if not response["raw"] == False:
                 # Share accepted with TXID
-                return {"Accepted": True, "TXID": json.loads(response["raw"])["result"][0]}
+                return {"Accepted": True, "jobID": jobID, "TXID": json.loads(response["raw"])["result"][0]}
             else:
                 # Share accepted, but no TXID
-                return {"Accepted": True, "TXID": False}
+                return {"Accepted": True, "jobID": jobID, "TXID": False}
         else:
             # Share rejected
-            return {"Accepted": False, "TXID": False}
+            return {"Accepted": False, "jobID": jobID, "TXID": False}
 
 class console_log:
 
@@ -101,11 +101,11 @@ class console_log:
     def share(type, data):
         if data["Accepted"]:
             if data["TXID"]:
-                console_log.rgbPrint(type + " accepted, TXID: " + json.loads(data["TXID"])["result"][0], "green")
+                console_log.rgbPrint(type + " accepted, JOB ID: " + str(data["jobID"]) + ", TXID: " + json.loads(data["TXID"])["result"][0], "green")
             else:
-                console_log.rgbPrint(type + " accepted, pool dry", "yellow")
+                console_log.rgbPrint(type + " accepted, pool dry, JOB ID: " + str(data["jobID"]), "yellow")
         else:
-            console_log.rgbPrint(type + " rejected", "red")
+            console_log.rgbPrint(type + " rejected, JOB ID: " + str(data["jobID"]), "red")
     
     def hashrate(hashrates):
         console_log.rgbPrint("Hashrate: " + formatHashrate(sum(hashrates)/len(hashrates)), "cyan")
