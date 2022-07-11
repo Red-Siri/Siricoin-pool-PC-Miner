@@ -41,10 +41,15 @@ def main():
         time.sleep(random.randint(2, 5))
 
 
-def Restart():
-    console_log.rgbPrint("Pool refused connection, trying again in " + str(restartTime) + "s", "red")
+def Restart(type):
+    if type == "pool_connection":
+        console_log.rgbPrint("Pool refused connection, trying again in " + str(restartTime) + "s", "red")
+    elif type == "AttributeError":
+        console_log.rgbPrint("Pool returned invalid data, restarting in " + str(restartTime) + "s", "red")
+
     time.sleep(restartTime)
     os.execl(sys.executable, sys.executable, *sys.argv)
+
 
 
 def formatHashrate(hashrate):
@@ -63,13 +68,13 @@ class pool:
         try:
             return requests.post(poolURL, json={'id': None, 'method': 'mining.authorize', 'params': [siriAddress]}).json()["id"]
 
-        except (requests.ConnectionError, requests.ConnectTimeout, requests.HTTPError, requests.JSONDecodeError, requests.ReadTimeout, requests.Timeout, requests.TooManyRedirects, requests.RequestException): Restart()
+        except (requests.ConnectionError, requests.ConnectTimeout, requests.HTTPError, requests.JSONDecodeError, requests.ReadTimeout, requests.Timeout, requests.TooManyRedirects, requests.RequestException): Restart("pool_connection")
 
     def requestJob(id):
         try:
             response = requests.post(poolURL, json={'id': id, 'method': 'mining.subscribe', 'params': ['PC']}).json()["params"]
 
-        except (requests.ConnectionError, requests.ConnectTimeout, requests.HTTPError, requests.JSONDecodeError, requests.ReadTimeout, requests.Timeout, requests.TooManyRedirects, requests.RequestException): Restart()
+        except (requests.ConnectionError, requests.ConnectTimeout, requests.HTTPError, requests.JSONDecodeError, requests.ReadTimeout, requests.Timeout, requests.TooManyRedirects, requests.RequestException): Restart("pool_connection")
 
         return {"JOB_ID": response[0], "lastBlockHash": response[1], "target": response[2], "startNonce": response[3], "EndNonce": response[4], "timestamp": response[7], "PoolAddr": response[9]}
 
@@ -77,7 +82,7 @@ class pool:
         try:
             response = requests.post(poolURL, json={"id": id, "method": "mining.submit", "params": [siriAddress, jobID, proof, timestamp, nonce]}).json()
 
-        except (requests.ConnectionError, requests.ConnectTimeout, requests.HTTPError, requests.JSONDecodeError, requests.ReadTimeout, requests.Timeout, requests.TooManyRedirects, requests.RequestException): Restart()
+        except (requests.ConnectionError, requests.ConnectTimeout, requests.HTTPError, requests.JSONDecodeError, requests.ReadTimeout, requests.Timeout, requests.TooManyRedirects, requests.RequestException): Restart("pool_connection")
 
         if response["result"]:
             if not response["raw"] == False:
@@ -147,4 +152,7 @@ def PoW(bRoot, start_nonce, end_nonce, target):
 
         hashes = []
 
-main()
+try:
+    main()
+except AttributeError:
+    Restart("AttributeError")
